@@ -61,7 +61,26 @@ fn main() {
 /// constructs a new db which must have a unique name
 /// each new db needs a partition key to query the records. Each partition key must be unique
 /// a sort key is optional for a composite key structure
-fn create_db(_: Vec<String>) -> i32 {
+fn create_db(args: Vec<String>) -> i32 {
+    if args.len() != 4 {
+        panic!("Invalid number of arguments, create need's 3 -> [command, db_name, partition_key]")
+    }
+
+    let db_path = format!("data/{}.db", &args[2]);
+    let mut db = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(db_path)
+        .unwrap_or_else(|error| {
+            panic!("Error creating a new DB table: {error}")
+        });
+
+    let pk = format!("pk={}", &args[3]);
+    db.write(&pk.into_bytes())
+        .unwrap_or_else(|error| {
+            panic!("Error writting partition key to new DB: {error}")
+        });
+
     9
 }
 
@@ -78,8 +97,7 @@ fn get_operation() -> i32 {
 fn set_operation(args: Vec<String>) -> i32 {
     if args.len() != 5 {
         panic!(
-            "Invalid number of arguments, set need's 4 -> [command, key, value, type]: args: {:?}",
-            args
+            "Invalid number of arguments, set need's 4 -> [command, key, value, type]"
         )
     }
 

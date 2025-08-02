@@ -25,9 +25,8 @@ Build the functionality to insert a record into a specified database
 
 ### Commands
 
-- Create: creates a new database -> create db_name partition_key sort_key?
+- Create: creates a new database -> create db_name partition_key
   i.e create cart id
-  i.e create person id email
 - Set: stores a kv pair in the DB -> set key value type
   i.e set age 16 N
 - Get: gets a kv pair from the DB -> get key
