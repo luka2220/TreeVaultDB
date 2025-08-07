@@ -2,7 +2,8 @@
 
 - [x] Add functionality to read from the DB
 - [x] Add functionality to write to the DB
-- [ ] Add the functionality to create new DB tables
+- [x] Add the functionality to create new DB tables
+- [ ] Build the set command functionality
 
 #### Table Defintion
 
@@ -11,6 +12,7 @@ Build the functionality to create new DB tables
 - Each table is it's own DB binary file
 - Each DB must have a unique name
 - When creating a db user must define a partition index
+- store the pk in the database file (the first line in every database file will be configurations)
 - User can optionally define a sort index to form a composite key (hash of the partition key and sort key)
 
 #### Set/Insert Command
@@ -18,10 +20,17 @@ Build the functionality to create new DB tables
 Build the functionality to insert a record into a specified database
 
 - Keys must be unique
+- Must contain at least the partition key
 - Each attribute on an insert must have a valid type
 - Design a proper binary storage format
 - Each record in a table can have multiple attributes
 - Attributes do not need to be persisted accross records for a table
+
+For example a database with a pk of id an insert record would look like:
+
+set db_name num_attr pk|value|type attr|value|type attr|value|type
+
+-> set shopping-cart 3 id|jdk-0290-sss|S name|John Smith|S age|45|N
 
 ### Commands
 

@@ -1,6 +1,7 @@
-pk=id
+pk=id|S
 iid9 897234 N
 new-kv long string data for you to store S
 large-string This is going to be very long. Some data is larger than others S
 idv458jfur 99234 N
 32847h-sdgf23r-r322n true B
+---pk|id-001-lll|S---name|John Smith|S---role|ADMIN|S

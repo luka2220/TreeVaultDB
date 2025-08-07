@@ -3,6 +3,7 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::io::Write;
+use std::process::exit;
 
 // ANSI
 const ANSI_BLUE: &str = "\x1b[38;2;0;95;255m";
@@ -19,24 +20,36 @@ const DUMP: &str = "dump";
 const COMPACT: &str = "compact";
 
 fn db_read() -> String {
-    let mut db =
-        File::open("data/data.db").unwrap_or_else(|error| panic!("Error opening DB: {error:?}"));
+    let mut db = File::open("data/data.db").unwrap_or_else(|error| {
+        eprintln!("Error opening DB: {error:?}");
+        exit(1)
+    });
 
     let mut data = String::new();
-    db.read_to_string(&mut data)
-        .unwrap_or_else(|error| panic!("Error reading from DB: {error:?}"));
+    db.read_to_string(&mut data).unwrap_or_else(|error| {
+        eprintln!("Error reading from DB: {error:?}");
+        exit(1)
+    });
 
     data
 }
 
-fn write_to_db(data: String) {
+/// Writes a record to a specific database
+fn write_to_db(db_name: String, data: String) {
+    let db_full_path = format!("data/{}.db", db_name);
+
     let mut db = OpenOptions::new()
         .append(true)
-        .open("data/data.db")
-        .unwrap_or_else(|error| panic!("Unable to open database: {error:?}"));
+        .open(db_full_path)
+        .unwrap_or_else(|error| {
+            eprintln!("Unable to open database: {error:?}");
+            exit(1)
+        });
 
-    db.write(&data.into_bytes())
-        .unwrap_or_else(|error| panic!("Error writting data to the DB: {error:?}"));
+    db.write(&data.into_bytes()).unwrap_or_else(|error| {
+        eprintln!("Error writting data to the DB: {error:?}");
+        exit(1)
+    });
 }
 
 fn main() {
@@ -63,7 +76,10 @@ fn main() {
 /// a sort key is optional for a composite key structure
 fn create_db(args: Vec<String>) -> i32 {
     if args.len() != 4 {
-        panic!("Invalid number of arguments, create need's 3 -> [command, db_name, partition_key]")
+        eprintln!(
+            "Invalid number of arguments, create need's 3 -> [command, db_name, partition_key]"
+        );
+        exit(1)
     }
 
     let db_path = format!("data/{}.db", &args[2]);
@@ -72,14 +88,17 @@ fn create_db(args: Vec<String>) -> i32 {
         .create_new(true)
         .open(db_path)
         .unwrap_or_else(|error| {
-            panic!("Error creating a new DB table: {error}")
+            eprintln!("Error creating a new DB table: {error}");
+            exit(1)
         });
 
     let pk = format!("pk={}", &args[3]);
-    db.write(&pk.into_bytes())
-        .unwrap_or_else(|error| {
-            panic!("Error writting partition key to new DB: {error}")
-        });
+    db.write(&pk.into_bytes()).unwrap_or_else(|error| {
+        eprintln!(
+            "Invalid number of arguments for the set command -> set db_name n_attr pk: {error}"
+        );
+        exit(1)
+    });
 
     9
 }
@@ -95,14 +114,24 @@ fn get_operation() -> i32 {
 ///
 /// sets a key by value
 fn set_operation(args: Vec<String>) -> i32 {
-    if args.len() != 5 {
-        panic!(
-            "Invalid number of arguments, set need's 4 -> [command, key, value, type]"
-        )
+    if args.len() < 5 {
+        eprintln!("Invalid number of arguments for the set command -> set db_name n_attr pk");
+        exit(1)
     }
 
-    let data = format!("{} {} {}\r\n", args[2], args[3], args[4]);
-    write_to_db(data);
+    let db_name = args[2].clone();
+    let num_attr: usize = args[3].parse().unwrap_or_else(|error| {
+        eprintln!("An error ocurred converting String to i32: {error}");
+        exit(1)
+    });
+
+    let mut record_data = String::new();
+
+    for i in 1..num_attr + 1 {
+        record_data = format!("{}---{}", record_data, &args[i + 3])
+    }
+
+    write_to_db(db_name, record_data);
 
     11
 }
