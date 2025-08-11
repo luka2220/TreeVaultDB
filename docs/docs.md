@@ -15,7 +15,7 @@ Build the functionality to create new DB tables
 - store the pk in the database file (the first line in every database file will be configurations)
 - User can optionally define a sort index to form a composite key (hash of the partition key and sort key)
 
-#### Set/Insert Command
+### Set/Insert Command
 
 Build the functionality to insert a record into a specified database
 
@@ -25,6 +25,36 @@ Build the functionality to insert a record into a specified database
 - Design a proper binary storage format
 - Each record in a table can have multiple attributes
 - Attributes do not need to be persisted accross records for a table
+
+#### Wire Protocol
+
+- The wire protocol will be JSON similar to dynamoDB. This will allow other languages to talk to the same service.
+- JSON will just be used as a transport protocol, not as a storage format
+
+```json
+{
+  "id": { "S": "SOME-ID" },
+  "count": { "N": "12333" }
+}
+```
+
+- TreeVault running on the server will only take POST requests
+- Below is an example with a table name of pets and a pk of AnimalType and sk of Name:
+
+```json
+{
+  "TableName": "Pets",
+  "Key": {
+    "AnimalType": { "S": "Dog" },
+    "Name": { "S": "Fido" }
+  }
+}
+```
+
+- In the POST request headers the X-Amz-Target will be the DB operation and the Authorization header will be used for authentication to the DB:
+
+Authorization: ...
+X-Amz-Target: TreeValutDb.GetItem
 
 For example a database with a pk of id an insert record would look like:
 
